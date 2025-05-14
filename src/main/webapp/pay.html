@@ -1,0 +1,103 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/webbase.css">
+    <link rel="stylesheet" href="css/pages-weixinpay.css">
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/include.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+    <!-- 获取地址栏参数 -->
+    <script src="js/getParameter.js"></script>
+
+    <!-- 二维码插件 -->
+    <script type="text/javascript" src="js/qrcode.js"></script>
+    <title>微信支付</title>
+
+</head>
+<body>
+<header id="header"></header>
+<div class="container-fluid" id="app">
+    <div class="cart py-container">
+        <!--主内容-->
+        <div class="checkout py-container  pay">
+            <div class="checkout-tit">
+                <h4 class="fl tit-txt"><span class="success-icon"></span><span class="success-info">订单提交成功，请您及时付款！订单号：{{orderId}}</span></h4>
+                <span class="fr"><em class="sui-lead">应付金额：</em><em class="orange money">￥{{price}}</em>元</span>
+                <div class="clearfix"></div>
+            </div>
+            <div class="checkout-steps">
+                <div class="fl weixin">微信支付</div>
+                <div class="fl sao">
+                    <div class="fl code" id="code">
+                    </div>
+
+                    <div class="fl" style="background:url(./img/phone-bg.png) no-repeat;width:350px;height:400px;margin-left:40px"></div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--引入尾部-->
+<footer id="footer"></footer>
+
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            //订单号
+            orderId: '',
+            //支付金额
+            price: 0,
+            //预支付链接地址
+            payUrl: ''
+        },
+        methods: {
+            //创建二维码
+            createUrl() {
+                //获取交易地址
+                axios.get(`/pay/createUrl?oid=${this.orderId}&price=${this.price}`).then(resp => {
+                    //获取地址
+                    this.payUrl = resp.data;
+                    //将地址生成二维码
+                    new QRCode("code", this.payUrl);
+                    //开始查询订单状态
+                    this.findStatus();
+                });
+            },
+            //查询订单状态
+            findStatus() {
+                //每过5秒查询1次订单状态
+                setInterval(() => {
+                    axios.post("/pay/findStatus", `oid=${this.orderId}`).then(resp => {
+                    	let isPaid = resp.data;
+                    	if (isPaid) {
+                    	    //支付成功
+                            location.href = "pay_success.html";
+                        }
+                    });
+                }, 5000);
+
+                //超时跳转到支付失败页面
+                setTimeout(()=>{
+                    location.href = "pay_fail.html";
+                }, 30000);
+            }
+        },
+        created() {
+            //获取地址栏上参数
+            this.orderId = getParameter("oid");
+            this.price = getParameter("price");
+            //调用方法生成二维码
+            this.createUrl();
+        }
+    });
+</script>
+</body>
+</html>

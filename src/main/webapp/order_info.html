@@ -1,0 +1,161 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="css/webbase.css">
+    <link rel="stylesheet" type="text/css" href="css/pages-getOrderInfo.css">
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/include.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+    <title>结算页</title>
+</head>
+<body>
+<!--引入头部-->
+<header id="header"></header>
+<div class="container-fluid" id="app">
+    <form id="orderForm">
+        <!-- 头部 end -->
+        <div class="cart py-container">
+            <!--主内容-->
+            <div class="checkout py-container">
+                <div class="step-tit">
+                    <h4 style="font-weight: bold">填写并核对订单信息</h4>
+                </div>
+                <div class="checkout-steps">
+                    <!--收件人信息-->
+                    <div class="step-tit">
+                        <h5>收件人信息</h5>
+                    </div>
+                    <div class="step-cont">
+                        <div class="addressInfo">
+                            <ul class="addr-detail">
+                                <li class="addr-item">
+                                    <div>
+                                        <div v-for="address in addressList" class="con address">
+                                            <!-- 单选框的值，并且设置默认收货地址 -->
+                                            <input type="radio" name="addressId" :value="address.aid" v-model="aid">
+                                            {{address.contact}} {{address.address}}
+                                            <span>{{address.telephone}}</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="hr"></div>
+                    <!--支付和送货-->
+                    <div class="payshipInfo">
+                        <div class="step-tit">
+                            <h5>支付方式</h5>
+                        </div>
+                        <div class="step-cont">
+                            <ul class="payType">
+                                <li class="selected">微信付款</li>
+                            </ul>
+                        </div>
+                        <div class="hr"></div>
+                        <div class="step-tit">
+                            <h5>送货清单</h5>
+                        </div>
+                        <div class="step-cont">
+                            <ul class="send-detail">
+                                <li>
+                                    <div class="sendGoods">
+                                        <!-- 遍历购物车 -->
+                                        <ul v-for="(cartItem,rid) in cart.cartItemMap" class="yui3-g">
+                                            <li class="yui3-u-1-6">
+                                                <span><img :src="cartItem.route.rimage"/></span>
+                                            </li>
+                                            <li class="yui3-u-7-12" style="padding: 0px 8px">
+                                                <div class="desc">{{cartItem.route.rname}}</div>
+                                            </li>
+                                            <li class="yui3-u-1-12">
+                                                <div class="price">￥{{cartItem.route.price}}</div>
+                                            </li>
+                                            <li class="yui3-u-1-12">
+                                                <div class="num">&times;{{cartItem.num}}</div>
+                                            </li>
+                                            <li class="yui3-u-1-12">
+                                                <div class="exit">￥{{cartItem.subTotal}}</div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="hr"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix trade">
+                <div class="fc-price">
+                    <span class="number">{{cart.cartNum}}</span>件商品，应付金额:　<span class="price">¥{{cart.cartTotal}}</span>
+                </div>
+            </div>
+            <div class="submit">
+                <button class="sui-btn btn-danger btn-xlarge" type="button" @click="subOrder">提交订单</button>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- 底部栏位 -->
+<footer id="footer"></footer>
+
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            //地址列表
+            addressList: [],
+            //购物车
+            cart: {},
+            //默认选中aid
+            aid: 0
+        },
+        methods: {
+            //查询购物车和收货人地址
+            prepareOrder() {
+                axios.get("/order/prepareOrder").then(resp => {
+                    let resultInfo = resp.data;
+                    if (resultInfo.success) {
+                        //封装了2个对象
+                        let map = resultInfo.data;
+                        //获取封装在map中两个对象
+                        this.addressList = map.addressList;
+                        this.cart = map.cart;
+                        //将aid设置成默认的地址主键
+                        for (let address of this.addressList) {
+                            //判断是否是默认的收货地址
+                            if (address.isdefault == 1) {
+                                this.aid = address.aid;
+                                break;
+                            }
+                        }
+                    }
+                });
+            },
+            //提交订单的按钮
+            subOrder() {
+              axios.post("/order/subOrder", `aid=${this.aid}`).then(resp => {
+              	let resultInfo = resp.data;
+              	if (resultInfo.success) {
+              	    //获取订单对象
+                    let order = resultInfo.data;
+                    //跳转到支付页面去
+                    location.href = `pay.html?oid=${order.oid}&price=${order.total}`;
+                }
+              });
+            }
+        },
+        created() {
+            //查询购物车和收货人地址
+            this.prepareOrder();
+        }
+    })
+</script>
+</body>
+</html>

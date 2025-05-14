@@ -1,0 +1,166 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>路线详情</title>
+
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/getParameter.js"></script>
+    <script src="js/include.js"></script>
+
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/route-detail.css">
+</head>
+
+<body>
+<!--引入头部-->
+<div id="header"></div>
+<!-- 详情 start -->
+<div class="wrap" id="app">
+    <div class="bread_box">
+        <a href="index.html">首页</a>
+        <span> &gt;</span>
+        <!-- 换成分类中属性 -->
+        <a :href=`route_list.html?cid=${category.cid}`>{{category.cname}}</a><span> &gt;</span>
+        <a href="#">{{route.rname}}</a>
+        
+    </div>
+    <div class="prosum_box">
+        <!-- 显示图片 -->
+        <dl class="prosum_left">
+            <dt>
+                <!-- 单独获取第1张图片 -->
+                <img alt="" class="big_img" :src="firstImage.bigPic">
+            </dt>
+            <dd>
+                <a class="up_img up_img_disable"></a>
+                <!-- 遍历图片：(每个元素, 索引号) in 集合 -->
+                <!-- 如果index小于4就显示 -->
+                <a v-for="(routeImg,index) in routeImgList" title="" class="little_img"
+                   :data-bigpic="routeImg.bigPic" v-show="index < 4">
+                    <img :src="routeImg.smallPic">
+                </a>
+                
+                <a class="down_img down_img_disable" style="margin-bottom: 0;"></a>
+            </dd>
+        </dl>
+        <!-- 显示线路的详情 -->
+        <div class="prosum_right">
+            <p class="pros_title">{{route.rname}}</p>
+            <p class="hot">{{route.routeIntroduce}}</p>
+            <div class="pros_other">
+                <p>{{seller.sname}}</p>
+                <p>咨询电话 : {{seller.consphone}}</p>
+                <p>地址 ： {{seller.address}}</p>
+            </div>
+            <div class="pros_price">
+                <p class="price">
+                    <strong>￥{{route.price}}</strong>
+                </p>
+                <div class="p_number">
+                    <div class="f_l add_chose">
+                        <!-- 购物数量，检查数量是否大于0，双向绑定num -->
+                        <input type="number" name="num" v-model="num" id="num" class="text" min="1"/>
+                    </div>
+                    <span class="collect">
+                        <!-- 注：href后面的地址要去掉 -->
+                         <a class="btn" id="addCart" @click="addCart"><i class="glyphicon glyphicon-heart-empty"></i>加入购物车</a>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="you_need_konw">
+        <span>旅游须知</span>
+        <div class="notice">
+            <p>1、旅行社已投保旅行社责任险。建议游客购买旅游意外保险 <br>
+
+            <p>
+                2、旅游者参加打猎、潜水、海边游泳、漂流、滑水、滑雪、滑草、蹦极、跳伞、滑翔、乘热气球、骑马、赛车、攀岩、水疗、水上飞机等属于高风险性游乐项目的，敬请旅游者务必在参加前充分了解项目的安全须知并确保身体状况能适应此类活动；如旅游者不具备较好的身体条件及技能，可能会造成身体伤害。</p>
+
+            <p>
+                3、参加出海活动时，请务必穿着救生设备。参加水上活动应注意自己的身体状况，有心脏病、冠心病、高血压、感冒、发烧和饮酒及餐后不可以参加水上活动及潜水。在海里活动时，严禁触摸海洋中各种鱼类，水母，海胆，珊瑚等海洋生物，避免被其蛰伤。老人和小孩必须有成年人陪同才能参加合适的水上活动。在海边游玩时，注意保管好随身携带的贵重物品。</p>
+
+            <p>4、根据中国海关总署的规定，旅客在境外购买的物品，在进入中国海关时可能需要征收关税。详细内容见《中华人民共和国海关总署公告2010年第54号文件》。</p>
+
+            <p>5、建议出发时行李托运，贵重物品、常用物品、常用药品、御寒衣物等请随身携带，尽量不要托运。行李延误属于不可抗力因素，我司将全力协助客人跟进后续工作，但我司对此不承担任何责任。</p>
+            <p>1、旅行社已投保旅行社责任险。建议游客购买旅游意外保险 <br>
+
+            <p>
+                2、旅游者参加打猎、潜水、海边游泳、漂流、滑水、滑雪、滑草、蹦极、跳伞、滑翔、乘热气球、骑马、赛车、攀岩、水疗、水上飞机等属于高风险性游乐项目的，敬请旅游者务必在参加前充分了解项目的安全须知并确保身体状况能适应此类活动；如旅游者不具备较好的身体条件及技能，可能会造成身体伤害。</p>
+
+            <p>
+                3、参加出海活动时，请务必穿着救生设备。参加水上活动应注意自己的身体状况，有心脏病、冠心病、高血压、感冒、发烧和饮酒及餐后不可以参加水上活动及潜水。在海里活动时，严禁触摸海洋中各种鱼类，水母，海胆，珊瑚等海洋生物，避免被其蛰伤。老人和小孩必须有成年人陪同才能参加合适的水上活动。在海边游玩时，注意保管好随身携带的贵重物品。</p>
+
+            <p>4、根据中国海关总署的规定，旅客在境外购买的物品，在进入中国海关时可能需要征收关税。详细内容见《中华人民共和国海关总署公告2010年第54号文件》。</p>
+
+            <p>5、建议出发时行李托运，贵重物品、常用物品、常用药品、御寒衣物等请随身携带，尽量不要托运。行李延误属于不可抗力因素，我司将全力协助客人跟进后续工作，但我司对此不承担任何责任。</p>
+        </div>
+    </div>
+</div>
+<!-- 详情 end -->
+<!--引入头部-->
+<div id="footer"></div>
+<script src="js/play-ani.js"></script>
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            //线路对象
+            route: {},
+            //线路的主键
+            rid: 0,
+            //分类对象
+            category: {},
+            //商家对象
+            seller: {},
+            //线路图数组
+            routeImgList: [],
+            //第一张图片的对象
+            firstImage: {},
+            //商品数量
+            num: 1
+        },
+        methods: {
+            //显示线路详情
+            showDetails() {
+                axios.post("/route/findRouteByRid", `rid=${this.rid}`).then(resp => {
+                    //返回route对象
+                    this.route = resp.data;
+                    //把几个对象的属性全部取出来
+                    this.category = this.route.category;
+                    this.seller = this.route.seller;
+                    this.routeImgList = this.route.routeImgList;
+                    //获取第1张图片的对象
+                    this.firstImage = this.routeImgList[0];
+                });
+            },
+            //添加商品到购物车
+            addCart() {
+                if (this.num < 1) {
+                    alert("数量必须大于1");
+                    this.num = 1;
+                    return;
+                }
+                axios.post("/cart/addCart", `num=${this.num}&rid=${this.rid}`).then(resp => {
+                    let resultInfo = resp.data;
+                    //显示操作结果
+                    alert(resultInfo.message);
+                    //如果判断成功，跳转到添加成功的页面
+                    if (resultInfo.success) {
+                        location.href = "cart_success.html";
+                    }
+                });
+            }
+        },
+        created() {
+            //从地址栏上获取rid的值
+            this.rid = getParameter("rid");
+            this.showDetails();
+        }
+    })
+</script>
+</body>
+</html>

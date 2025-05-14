@@ -1,0 +1,89 @@
+<script src="js/axios-0.19.0.js"></script>
+<script src="js/vue.js"></script>
+<meta charset="utf-8">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="css/common.css">
+
+<div id="headerContainer">
+    <!-- 头部 start -->
+    <div class="top_banner">
+        <div class="shortcut">
+            <!-- 未登录状态  -->
+            <div v-if="!isLogged" class="login_out">
+                <a href="login.html">登录</a>
+                <a href="register.html">注册</a>
+            </div>
+            <!-- 登录状态  -->
+            <div v-else class="login">
+                <!-- 修改用户名 -->
+                <span id="welcome">欢迎您！{{username}}</span>
+                <a href="cart.html" class="collection">购物车</a>
+                <!-- 退出的方法 -->
+                <a href="javascript:;" @click="logout">退出</a>
+            </div>
+        </div>
+    </div>
+    <!-- 首页导航 -->
+    <div class="navitem">
+        <ul class="nav">
+            <li><a href="index.html">首页</a></li>
+            <!-- 只需要替换中间的部分，通过cid来区分点击哪个菜单，注：href前面要添加冒号 -->
+            <li v-for="category in categories"><a :href=`route_list.html?cid=${category.cid}`>{{category.cname}}</a></li>
+            <li><a href="favorite_rank.html">收藏排行榜</a></li>
+        </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    new Vue({
+        el: "#headerContainer",
+        data: {
+            //用户登录状态
+            isLogged: false,
+            //显示用户名
+            username: '',
+            //导航分类
+            categories: []
+        },
+        methods: {
+            //显示登录状态
+            showLoginStatus() {
+                //访问服务器判断用户是否登录
+                axios.get("/user/isLogged").then(resp => {
+                    let resultInfo = resp.data;
+                    //表示已经登录
+                    if (resultInfo.success) {
+                        this.isLogged = true;
+                        //将用户名设置为当前登录用户
+                        this.username = resultInfo.data;
+                    } else {
+                        this.isLogged = false;
+                    }
+                });
+            },
+            //用户退出
+            logout() {
+                axios.get("/user/logout").then(resp => {
+                    //获取服务器返回状态码
+                    let code = resp.status;
+                    if (code == 200) {
+                        //跳转到登录页面去
+                        location.href = "login.html";
+                    }
+                });
+            },
+            //加载所有的导航分类
+            loadNavItems() {
+                axios.get("/category/findAll").then(resp => {
+                    //返回分类集合
+                	this.categories = resp.data;
+                });
+            }
+        },
+        //注：不在methods内部
+        created() {
+            this.showLoginStatus();
+            //查询所有分类
+            this.loadNavItems();
+        }
+    });
+</script>

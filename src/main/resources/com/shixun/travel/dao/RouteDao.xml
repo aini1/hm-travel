@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shixun.travel.dao.RouteDao">
+    <select id="findRouteByCid" resultType="com.shixun.travel.domain.Route">
+        SELECT * FROM tab_route WHERE cid=#{cid}
+        <if test="rname!=null and rname!=''">
+            and rname like concat('%',#{rname},'%')
+        </if>
+    </select>
+
+    <select id="findFavoriteRank" resultType="com.shixun.travel.domain.Route">
+        SELECT * FROM tab_route 
+        <where>
+            <if test="rname != null and rname != ''">
+                AND rname LIKE CONCAT('%', #{rname}, '%')
+            </if>
+            <if test="minPrice != null">
+                AND price >= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND price &lt;= #{maxPrice}
+            </if>
+        </where>
+        ORDER BY count DESC
+    </select>
+</mapper>

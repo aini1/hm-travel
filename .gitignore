@@ -1,0 +1,77 @@
+### Java项目通用忽略
+# 编译输出目录
+target/
+out/
+gen/
+build/
+*.class
+
+# IDE相关文件
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+.factorypath
+
+# 日志文件
+*.log
+logs/
+
+### Web资源文件忽略
+# Web资源目录
+/webapp/dist/
+/webapp/build/
+/webapp/node_modules/
+
+# 静态资源文件
+/webapp/**/*.jpg
+/webapp/**/*.png
+/webapp/**/*.gif
+/webapp/**/*.ico
+/webapp/**/*.css
+/webapp/**/*.js
+/webapp/**/*.map
+
+# 前端依赖文件
+/webapp/package-lock.json
+/webapp/yarn.lock
+/webapp/.env
+/webapp/.env.local
+/webapp/.env.*.local
+
+# 前端IDE配置
+/webapp/.idea/
+/webapp/.vscode/
+/webapp/.DS_Store
+
+### 其他
+# 临时文件
+*.tmp
+*.temp
+*.swp
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编译输出
+target/
+out/
+build/
+
+# IDE文件
+.idea/
+*.iml
+
+# 静态资源
+*.jpg
+*.png
+*.gif
+*.mp4
+*.zip
+*.rar
+
+# 依赖目录
+node_modules/

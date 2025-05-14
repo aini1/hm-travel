@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>黑马旅游网-登录</title>
+    <script src="js/jquery-3.3.1.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/login.css">
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+</head>
+
+<body>
+<!--引入头部-->
+<div id="header">
+</div>
+<!-- 头部 end -->
+<div id="app">
+    <section id="login_wrap">
+        <div class="fullscreen-bg" style="background: url(images/login_bg.png);height: 532px;">
+
+        </div>
+        <div class="login-box">
+            <div class="title">
+                <img src="images/login_logo.png" alt="">
+                <span>欢迎登录黑马旅游账户</span>
+            </div>
+            <div class="login_inner">
+                <!--登录错误提示消息-->
+                <div id="errorMsg" class="alert alert-warning alert-dismissible" :style="{color: infoColor}">{{msg}}</div>
+                <form id="loginForm">
+                    <input name="username" type="text" placeholder="请输入账号" ref="username" autocomplete="off" v-model="user.username">
+                    <input name="password" type="password" placeholder="请输入密码" ref="password" autocomplete="off" v-model="user.password">
+                    <div class="verify">
+                        <input name="check" type="text" placeholder="请输入验证码" ref="smsCode" autocomplete="off" v-model="user.smsCode">
+                        <button type="button" class="btn btn-success btn-sm" :disabled="btnDisabled" @click="loginSendMessage"><span class="glyphicon glyphicon-phone" />{{btnText}}</button>
+                    </div>
+                    <div class="submit_btn">
+                        <button type="button" id="btnLogin" @click="login">登录</button>
+                        <div class="auto_login">
+                            <input type="checkbox" name="" class="checkbox">
+                            <span>自动登录</span>
+                        </div>
+                    </div>
+                </form>
+                <div class="reg">没有账户？<a href="register.html">立即注册</a></div>
+            </div>
+        </div>
+    </section>
+</div>
+<!--引入尾部-->
+<div id="footer">
+</div>
+<script src="js/include.js"></script>
+
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            user: {
+                username: '',  //用户名
+                password: '',  //密码
+                smsCode: ''    //验证码
+            },
+            msg: '输入用户名和密码',   //显示信息
+            infoColor: 'orange',
+            btnText: '发送手机验证码',
+            btnDisabled: false
+        },
+        methods: {
+            //登录发送短信
+            loginSendMessage() {
+                //判断用户名是否为空
+                if (this.user.username.trim() == '') {
+                    this.msg = "用户名不能为空";
+                    this.infoColor = "red";
+                    return;
+                }
+                //发送短信
+                axios.post("/user/loginSendMessage", `username=${this.user.username}`).then(resp => {
+                    let resultInfo = resp.data;
+                    if (resultInfo.success) {
+                        //发送成功
+                        this.infoColor = "green";
+                        //调用方法倒计时
+                        this.countDown(15);
+                    }
+                    else {
+                        //出现错误
+                        this.infoColor = "red";
+                    }
+                    //显示信息
+                    this.msg = resultInfo.message;
+                });
+            },
+
+            //登录
+            login() {
+                axios.post("/user/login", this.user).then(resp => {
+                    let resultInfo = resp.data;
+                    if (resultInfo.success) {
+                        //登录成功
+                        this.infoColor = "green";
+                        alert(resultInfo.message);
+                        //跳转到index.html页面
+                        location.href = "index.html";
+                    }
+                    else {
+                        //登录失败
+                        this.infoColor = "red";
+                        //显示信息
+                        this.msg = resultInfo.message;
+                    }
+                });
+            },
+
+            //倒计时60秒
+            countDown(num) {
+                //将按钮变得不可用
+                this.btnDisabled = true;
+                this.btnText = num + "秒以后再次发送";
+                //倒计时，方法的返回值就是计时器
+                let timer = setInterval(() => {
+                    //倒计时减1
+                    num--;
+                    //修改按钮上文字
+                    this.btnText = num + "秒以后再次发送";
+                    //再判断num是否为0
+                    if (num == 0) {
+                        //还原成原来的样子
+                        this.btnDisabled = false;
+                        this.btnText = "发送手机验证码";
+                        //清除计时器
+                        clearInterval(timer);
+                    }
+                }, 1000);
+            }
+        }
+    });
+</script>
+</body>
+</html>

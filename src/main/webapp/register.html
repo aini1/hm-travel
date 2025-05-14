@@ -1,0 +1,247 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>黑马旅游-注册</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" href="css/register.css">
+	<script src="js/jquery-3.3.1.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.19.0.js"></script>
+	<style>
+        #msg {
+            color: red;
+            font-size: 12px;
+        }
+		
+		 #sendSmsCode {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<!--引入头部-->
+<div id="header">
+</div>
+<!-- 头部 end -->
+<div class="rg_layout" id="app">
+    <div class="rg_form clearfix">
+        <div class="rg_form_left">
+            <p>新用户注册</p>
+            <p>USER REGISTER</p>
+        </div>
+        <div class="rg_form_center">
+            <!--注册表单-->
+            <form id="registerForm">
+                <table style="margin-top: 25px;width: 558px">
+                    <tr>
+                        <td class="td_left">
+                            <label for="username">用户名</label>
+                        </td>
+                        <td class="td_right">
+                            <input type="text" id="username" placeholder="请输入账号" @blur="checkUsername" v-model="user.username">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                            <label for="telephone">手机号</label>
+                        </td>
+                        <td class="td_right">
+                            <input type="text" id="telephone" placeholder="请输入您的手机号" v-model="user.telephone" @blur="checkTelephone">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                            <label for="password">密码</label>
+                        </td>
+                        <td class="td_right">
+                            <input type="password" id="password" placeholder="请输入密码" autocomplete="off" v-model="user.password">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                            <label for="smsCode">验证码</label>
+                        </td>
+                        <td class="td_right check">
+                            <input type="text" maxlength="6" id="smsCode" class="check" placeholder="请输入验证码" v-model="smsCode">
+                            <input type="button" id="sendSmsCode" :value="btnText" :disabled="btnDisabled" class="btn btn-success" @click="sendSms"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="td_left">
+                        </td>
+                        <td class="td_right check">
+                            <input type="button" class="submit" value="注册" @click="userSubmit()">
+                            <!-- 修改样式写法 -->
+                            <span id="msg" :style="{color: infoColor}">{{msg}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+        <div class="rg_form_right">
+            <p>
+                已有账号？
+                <a href="login.html">立即登录</a>
+            </p>
+        </div>
+    </div>
+</div>
+<!--引入尾部-->
+<div id="footer">
+</div>
+<script src="js/include.js"></script>
+
+<script type="text/javascript">
+    new Vue({
+        el: "#app",
+        data: {
+            //表单属性
+            user: {
+                username: '',
+                telephone: '',
+                password: ''
+            },
+            //验证码
+            smsCode: '',
+            //提示信息
+            msg: '',
+            //修改文字颜色
+            infoColor: 'red',
+            //发送短信按钮文字
+            btnText: '发送手机验证码',
+            //短信按钮是否可用
+            btnDisabled: false
+        },
+        methods: {
+            //注册按钮点击事件
+            userSubmit() {
+                //重新封装用户和验证码的信息
+                let param = {
+                    user: this.user,
+                    smsCode: this.smsCode
+                };
+                //提交用户和验证码
+                axios.post("/user/register", param).then(resp => {
+                	let resultInfo = resp.data;
+                	if (resultInfo.success) {
+                	    //注册成功
+                        alert(resultInfo.message);
+                        //跳转到注册成功的页面
+                        location.href = "register_ok.html";
+                    }
+                	else {
+                	    //注册失败
+                        this.msg = resultInfo.message;
+                        //设置为红色
+                        this.infoColor = "red";
+                    }
+                });
+            },
+
+            //判断用户名是否存在
+            checkUsername() {
+                //先判断用户名是否为空
+                if (this.user.username.trim() == "") {
+                    return;
+                }
+                //不为空才继续
+                axios.get("/user/findByUserName?username=" + this.user.username).then(resp => {
+                    let resultInfo = resp.data;
+                    //可以注册
+                    if (resultInfo.success) {
+                        this.infoColor = "green";
+                    }
+                    //已经存在
+                    else {
+                        this.infoColor = "red";
+                    }
+                    //显示信息
+                    this.msg = resultInfo.message;
+                });
+            },
+
+            //判断手机号是否存在
+            checkTelephone() {
+                //使用正则表达式判断手机格式是否正确
+                let reg = /^1[3-9]\d{9}$/;
+                if (!reg.test(this.user.telephone.trim())) {
+                    //如果不匹配
+                    //将信息的颜色设置为红色
+                    this.infoColor = "red";
+                    //显示信息
+                    this.msg = "请输入正确的手机号";
+                    return;
+                }
+                //清空提示信息
+                this.msg = "";
+                //表示手机号是正确的，判断手机号是否存在
+                axios.get("/user/findByTelephone?telephone=" + this.user.telephone).then(resp => {
+                	let resultInfo = resp.data;
+                    //判断手机号是否存在
+                    if (!resultInfo.success) {
+                        //将信息的颜色设置为红色
+                        this.infoColor = "red";
+                        //显示信息
+                        this.msg = resultInfo.message;
+                    }
+                });
+
+            },
+
+            //发送短信
+            sendSms() {
+                //1.获取手机号，判断手机号格式是否正确
+                let reg = /^1[3-9]\d{9}$/;
+                //2.如果手机格式错误，显示错误信息
+                if (!reg.test(this.user.telephone)) {
+                    this.msg = "请输入正确的手机号码";
+                    this.infoColor = "red";
+                    //返回，不再继续
+                    return;
+                }
+                //如果手机格式正确，(还应该判断手机是否已经注册)，再发送短信
+                axios.post("/user/sendSms", `telephone=${this.user.telephone}`).then(resp => {
+                	let resultInfo = resp.data;
+                    //发送成功
+                    if (resultInfo.success) {
+                        this.infoColor = "green";
+                        //倒计时
+                        this.countDown(20);
+                    }
+                    //发送失败
+                    else {
+                        this.infoColor = "red";
+                    }
+                    //显示信息
+                    this.msg = resultInfo.message;
+                });
+            },
+
+            //倒计时60秒
+            countDown(num) {
+                //将按钮变得不可用
+                this.btnDisabled = true;
+                this.btnText = num + "秒以后可以再次发送";
+                //倒计时，方法的返回值就是计时器
+                let timer = setInterval(() => {
+                    //倒计时减1
+                    num--;
+                    //修改按钮上文字
+                    this.btnText = num + "秒以后可以再次发送";
+                    //再判断num是否为0
+                    if (num == 0) {
+                        //还原成原来的样子
+                        this.btnDisabled = false;
+                        this.btnText = "发送手机验证码";
+                        //清除计时器
+                        clearInterval(timer);
+                    }
+                }, 1000);
+            }
+        }
+
+    });
+</script>
+</body>
+</html>

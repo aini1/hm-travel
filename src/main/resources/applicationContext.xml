@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--spring配置文件-->
+    <!-- 扫描业务类 -->
+    <context:component-scan base-package="com.shixun.travel.service,com.shixun.travel.utils"/>
+
+    <!-- 加载属性配置文件，并且将键和值放在容器中 -->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!-- 配置数据源对象 -->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <!--连接字符串 -->
+        <property name="url" value="${jdbc.url}"/>
+        <!--用户名-->
+        <property name="username" value="${jdbc.username}"/>
+        <!--密码-->
+        <property name="password" value="${jdbc.password}"/>
+        <!--驱动名字-->
+        <property name="driverClassName" value="${jdbc.driver}"/>
+    </bean>
+
+    <!-- 创建会话工厂类 -->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--用到了mybatis分页插件，要指定mybatis的配置文件-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+    </bean>
+
+    <!-- DAO代理类 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.shixun.travel.dao"/>
+    </bean>
+
+    <!-- 事务管理器 -->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 注解式事务 -->
+    <tx:annotation-driven/>
+
+    <!--spring整合redis-->
+    <!-- 1. redis独立的配置对象-->
+    <bean class="org.springframework.data.redis.connection.RedisStandaloneConfiguration" id="standaloneConfiguration">
+        <!-- 主机名 -->
+        <property name="hostName" value="localhost"/>
+        <!-- 端口号 -->
+        <property name="port" value="6379"/>
+    </bean>
+
+    <!-- 2. 创建jedis连接工厂，通过构造器注入上面的对象  要链接redis 创建连接对象连接对象由spring创建好了 从连接工厂获取 -->
+    <bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+          id="connectionFactory">
+        <!--构造器注入上面的id对象-->
+        <constructor-arg ref="standaloneConfiguration"/>
+    </bean>
+
+    <!-- 3. 创建redisTemplate对象 redis模板对象 -->
+    <bean class="org.springframework.data.redis.core.RedisTemplate" id="redisTemplate">
+        <!-- 指定连接工厂 -->
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <!-- 键：String的序列化策略，对字符串类型 键始终使用String类型-->
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <!-- 值：采用的是JSON的序列化策略 指定为JSON格式 存进去json取出来user-->
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer"/>
+        </property>
+    </bean>
+
+
+</beans>
